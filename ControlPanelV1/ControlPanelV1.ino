@@ -1,5 +1,3 @@
-//button wired pin 2 to ground directly
-
 // constants used here to set pin numbers:
 const int dispatchButton = 2;
 const int eStopButton = 3;
@@ -131,35 +129,39 @@ void loop(){
   }
 
 
-//BUTTONS AND SWITCHES\\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+  //BUTTONS AND SWITCHES\\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
 
   if(keySwitchState == LOW){
     if(eStopPressed == false){
+      if(powerOn == false){
       digitalWrite(powerLed, HIGH);
-      if(noLimitsStarted == false) {
+      powerOn = true;
+      }
+      else if(noLimitsStarted == false && resetButtonState == LOW && dispatchButtonState == LOW) {
         Serial.println("#S|STARTNOLIM|[]#");
         noLimitsStarted = true;   
-       for(int i=0;i<=3;i++){ 
-         // Blink all lights 
-         delay(shortInterval); 
-         digitalWrite(powerLed, LOW); 
-         delay(shortInterval); 
-         digitalWrite(powerLed, HIGH);
-      }
+        for(int i=0;i<=3;i++){ 
+          // Blink all lights 
+          delay(shortInterval); 
+          digitalWrite(powerLed, LOW); 
+          delay(shortInterval); 
+          digitalWrite(powerLed, HIGH);
+        }
       }
     }
   }
   else{
-    digitalWrite(powerLed, LOW); 
+    digitalWrite(powerLed, LOW);
+    eStopPressed = true;
   }
 
-//dispatch button
+  //dispatch button
   if (dispatchButtonState == LOW) {
     digitalWrite(dispatchLed, HIGH);
     if(dispatchPressed == false){
       //send dispatch key
-     Serial.print("#S|SENDK|[{ENTER}]#");     
+      Serial.print("#S|SENDK|[{ENTER}]#");     
       dispatchPressed = true;
     }
   }
@@ -167,40 +169,40 @@ void loop(){
     dispatchPressed = false;
   }
 
-//reset button
+  //reset button
   if (resetButtonState == LOW) {
     if(eStopPressed == true){
       if(digitalRead(eStopButtonState) == HIGH){
         digitalWrite(resetLed, HIGH);
         digitalWrite(powerLed, HIGH);
         digitalWrite(troubleLed, LOW);
-          if(resetPressed == false) {
-            Serial.print("#S|SENDK|[{F12}]#");
-            resetPressed = true;
-            eStopPressed = false;
-            eStopSent = false;
-          }
+        if(resetPressed == false) {
+          Serial.print("#S|SENDK|[{F12}]#");
+          resetPressed = true;
+          eStopPressed = false;
+          eStopSent = false;
+        }
       }
     }
     else if(resetButtonState == LOW && restraintSwitchState == LOW && gateSwitchState == LOW){
-     Serial.print("#S|SENDK|[{F11}]#"); 
+      Serial.print("#S|SENDK|[{F11}]#"); 
     }
   }
   else {
-resetPressed = false;
-digitalWrite(resetLed, LOW);
+    resetPressed = false;
+    digitalWrite(resetLed, LOW);
   }
 
-//E-Stop
+  //E-Stop
   if(eStopButtonState == LOW){
-  eStopPressed = true;
+    eStopPressed = true;
     if(eStopSent == false) {
-     Serial.print("#S|SENDK|[{F12}]#");
-     eStopSent = true;
+      Serial.print("#S|SENDK|[{F12}]#");
+      eStopSent = true;
     }
   }
 
-//Gate Toggle Switch
+  //Gate Toggle Switch
   if(gateSwitchState == LOW){
     if(gatesOpen == false){
       Serial.print("#S|SENDK|[{F10}]#");
@@ -209,11 +211,11 @@ digitalWrite(resetLed, LOW);
   }
   else {
     if(gatesOpen == true){
-    Serial.print("#S|SENDK|[{F10}]#");
-    gatesOpen = false; 
+      Serial.print("#S|SENDK|[{F10}]#");
+      gatesOpen = false; 
+    }
   }
-  }
-  
+
   //RESTRAINT SWITCH
   if(restraintSwitchState == LOW){
     if(restraintsOpen == false){
@@ -223,11 +225,12 @@ digitalWrite(resetLed, LOW);
   }
   else {
     if(restraintsOpen == true){
-    Serial.print("#S|SENDK|[{F9}]#");
-    restraintsOpen = false; 
+      Serial.print("#S|SENDK|[{F9}]#");
+      restraintsOpen = false; 
+    }
   }
-}
 
   delay(1);
 }
+
 
